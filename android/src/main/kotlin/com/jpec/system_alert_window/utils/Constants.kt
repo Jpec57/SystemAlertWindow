@@ -1,0 +1,47 @@
+package com.jpec.system_alert_window.utils
+
+import Notification.BubbleMetadata
+
+object Constants {
+    const val CHANNEL = "com.jpec.system_alert_window"
+    const val BACKGROUND_CHANNEL = "com.jpec.system_alert_window/background"
+    const val SHARED_PREF_SYSTEM_ALERT_WINDOW = "com.jpec.system_alert_window"
+    const val CALLBACK_HANDLE_KEY = "callback_handler"
+    const val CODE_CALLBACK_HANDLE_KEY = "code_callback_handler"
+    const val INTENT_EXTRA_PARAMS_MAP = "intent_params_map"
+    const val CALLBACK_TYPE_ONCLICK = "onClick"
+
+    //Internal plugin param map keys
+    const val KEY_HEADER = "header"
+    const val KEY_BODY = "body"
+    const val KEY_FOOTER = "footer"
+    const val KEY_IS_SHOW_FOOTER = "isShowFooter"
+    const val KEY_TITLE = "title"
+    const val KEY_SUBTITLE = "subTitle"
+    const val KEY_TAG = "tag"
+    const val KEY_TEXT = "text"
+    const val KEY_FONT_SIZE = "fontSize"
+    const val KEY_FONT_WEIGHT = "fontWeight"
+    const val KEY_TEXT_COLOR = "textColor"
+    const val KEY_BUTTON = "button"
+    const val KEY_BUTTONS_LIST = "buttons"
+    const val KEY_BUTTON_POSITION = "buttonPosition"
+    const val KEY_BUTTONS_LIST_POSITION = "buttonsPosition"
+    const val KEY_DECORATION = "decoration"
+    const val KEY_START_COLOR = "startColor"
+    const val KEY_END_COLOR = "endColor"
+    const val KEY_BORDER_WIDTH = "borderWidth"
+    const val KEY_BORDER_COLOR = "borderColor"
+    const val KEY_BORDER_RADIUS = "borderRadius"
+    const val KEY_GRAVITY = "gravity"
+    const val KEY_PADDING = "padding"
+    const val KEY_MARGIN = "margin"
+    const val KEY_LEFT = "left"
+    const val KEY_TOP = "top"
+    const val KEY_RIGHT = "right"
+    const val KEY_BOTTOM = "bottom"
+    const val KEY_WIDTH = "width"
+    const val KEY_HEIGHT = "height"
+    const val KEY_ROWS = "rows"
+    const val KEY_COLUMNS = "columns"
+}
