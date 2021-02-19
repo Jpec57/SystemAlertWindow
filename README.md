@@ -14,7 +14,7 @@ A flutter plugin to show Truecaller like overlay window, over all other apps alo
 #### JAVA (Application.java)
 
       import android.os.Bundle;
-      import in.jvapps.system_alert_window.SystemAlertWindowPlugin;
+      import com.jpec.system_alert_window.SystemAlertWindowPlugin;
       import io.flutter.app.FlutterApplication;
       import io.flutter.plugin.common.PluginRegistry;
       import io.flutter.plugins.GeneratedPluginRegistrant;
@@ -48,7 +48,7 @@ A flutter plugin to show Truecaller like overlay window, over all other apps alo
           }
 
          override fun registerWith(registry: PluginRegistry) {
-            SystemAlertWindowPlugin.registerWith(registry.registrarFor("in.jvapps.system_alert_window"));
+            SystemAlertWindowPlugin.registerWith(registry.registrarFor("com.jpec.system_alert_window"));
          }
       }
 

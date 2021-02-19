@@ -116,6 +116,14 @@ class SystemAlertWindow {
   static Future<bool> closeSystemWindow() async {
     return await _channel.invokeMethod('closeSystemWindow');
   }
+
+  static Future<bool> openLbc() async {
+    return await _channel.invokeMethod('openLbc');
+  }
+
+  static Future<bool> openMeet() async {
+    return await _channel.invokeMethod('openMeet');
+  }
 }
 
 void callbackDispatcher() {

@@ -28,10 +28,10 @@ flutter:
   plugin:
     platforms:
       android:
-        package: in.jvapps.system_alert_window
+        package: com.jpec.system_alert_window
         pluginClass: SystemAlertWindowPlugin
       ios:
-        package: in.jvapps.system_alert_window
+        package: com.jpec.system_alert_window
         pluginClass: SystemAlertWindowPlugin
 
   # To add assets to your plugin package, add an assets section, like this:

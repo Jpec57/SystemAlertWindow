@@ -1,4 +1,4 @@
-group 'in.jvapps.system_alert_window'
+group 'com.jpec.system_alert_window'
 version '1.0-SNAPSHOT'
 
 buildscript {
