@@ -6,7 +6,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-
+<uses-permission android:name="android.permission.GET_TASKS" />
+<uses-permission android:name="android.permission.REORDER_TASKS" />
     <application>
         <activity
             android:name=".BubbleActivity"
@@ -23,6 +24,11 @@
             android:permission="android.permission.BIND_JOB_SERVICE" />
         <service
             android:name=".services.WindowServiceNew"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.FOREGROUND_SERVICE"/>
+        <service
+            android:name=".services.ConfirmCloseDialog"
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.FOREGROUND_SERVICE"/>

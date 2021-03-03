@@ -45,8 +45,10 @@ class SystemAlertWindow {
     return await _channel.invokeMethod('requestPermissions');
   }
 
-  static Future<bool> registerOnClickListener(OnClickListener callBackFunction) async {
-    final callBackDispatcher = PluginUtilities.getCallbackHandle(callbackDispatcher);
+  static Future<bool> registerOnClickListener(
+      OnClickListener callBackFunction) async {
+    final callBackDispatcher =
+        PluginUtilities.getCallbackHandle(callbackDispatcher);
     final callBack = PluginUtilities.getCallbackHandle(callBackFunction);
     _channel.setMethodCallHandler((MethodCall call) {
       print("Got callback");
@@ -63,12 +65,14 @@ class SystemAlertWindow {
       }
       return null;
     });
-    await _channel.invokeMethod("registerCallBackHandler", <dynamic>[callBackDispatcher.toRawHandle(), callBack.toRawHandle()]);
+    await _channel.invokeMethod("registerCallBackHandler",
+        <dynamic>[callBackDispatcher.toRawHandle(), callBack.toRawHandle()]);
     return true;
   }
 
   static Future<bool> showSystemWindow(
       {@required SystemWindowHeader header,
+      String meetUrl,
       SystemWindowBody body,
       SystemWindowFooter footer,
       SystemWindowMargin margin,
@@ -80,6 +84,7 @@ class SystemAlertWindow {
     assert(header != null);
     final Map<String, dynamic> params = <String, dynamic>{
       'header': header.getMap(),
+      'meetUrl': meetUrl,
       'body': body?.getMap(),
       'footer': footer?.getMap(),
       'margin': margin?.getMap(),
@@ -87,12 +92,19 @@ class SystemAlertWindow {
       'width': width ?? Constants.MATCH_PARENT,
       'height': height ?? Constants.WRAP_CONTENT
     };
-    return await _channel.invokeMethod('showSystemWindow', [notificationTitle, notificationBody, params]);
+    return await _channel.invokeMethod(
+        'showSystemWindow', [notificationTitle, notificationBody, params]);
+  }
+
+  static Future<bool> launchIntent({int type = 0, @required identifier}) async {
+    assert(identifier != null);
+    return await _channel.invokeMethod('launchIntent', [type, identifier]);
   }
 
   static Future<bool> updateSystemWindow(
       {@required SystemWindowHeader header,
       SystemWindowBody body,
+      String meetUrl,
       SystemWindowFooter footer,
       SystemWindowMargin margin,
       SystemWindowGravity gravity = SystemWindowGravity.CENTER,
@@ -104,13 +116,15 @@ class SystemAlertWindow {
     final Map<String, dynamic> params = <String, dynamic>{
       'header': header.getMap(),
       'body': body?.getMap(),
+      'meetUrl': meetUrl,
       'footer': footer?.getMap(),
       'margin': margin?.getMap(),
       'gravity': Commons.getWindowGravity(gravity),
       'width': width ?? Constants.MATCH_PARENT,
       'height': height ?? Constants.WRAP_CONTENT
     };
-    return await _channel.invokeMethod('updateSystemWindow', [notificationTitle, notificationBody, params]);
+    return await _channel.invokeMethod(
+        'updateSystemWindow', [notificationTitle, notificationBody, params]);
   }
 
   static Future<bool> closeSystemWindow() async {
@@ -121,14 +135,23 @@ class SystemAlertWindow {
     return await _channel.invokeMethod('openLbc');
   }
 
-  static Future<bool> openMeet() async {
-    return await _channel.invokeMethod('openMeet');
+  static Future<bool> openMeet({String meetUrl}) async {
+    var params = [];
+    if (meetUrl != null) {
+      params.add(meetUrl);
+    }
+    return await _channel.invokeMethod('openMeet', params);
+  }
+
+  static Future<bool> closeRequest() async {
+    return await _channel.invokeMethod('confirmClose');
   }
 }
 
 void callbackDispatcher() {
   // 1. Initialize MethodChannel used to communicate with the platform portion of the plugin
-  const MethodChannel _backgroundChannel = const MethodChannel(Constants.BACKGROUND_CHANNEL);
+  const MethodChannel _backgroundChannel =
+      const MethodChannel(Constants.BACKGROUND_CHANNEL);
   // 2. Setup internal state needed for MethodChannels.
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -136,7 +159,8 @@ void callbackDispatcher() {
   _backgroundChannel.setMethodCallHandler((MethodCall call) async {
     final args = call.arguments;
     // 3.1. Retrieve callback instance for handle.
-    final Function callback = PluginUtilities.getCallbackFromHandle(CallbackHandle.fromRawHandle(args[0]));
+    final Function callback = PluginUtilities.getCallbackFromHandle(
+        CallbackHandle.fromRawHandle(args[0]));
     assert(callback != null);
     final type = args[1];
     if (type == "onClick") {

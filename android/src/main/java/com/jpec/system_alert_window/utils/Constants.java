@@ -13,7 +13,7 @@ public class Constants {
 
     static final String CALLBACK_TYPE_ONCLICK = "onClick";
 
-    //Internal plugin param map keys
+    // Internal plugin param map keys
     public static final String KEY_HEADER = "header";
     public static final String KEY_BODY = "body";
     public static final String KEY_FOOTER = "footer";
@@ -36,6 +36,7 @@ public class Constants {
     static final String KEY_BORDER_COLOR = "borderColor";
     static final String KEY_BORDER_RADIUS = "borderRadius";
     public static final String KEY_GRAVITY = "gravity";
+    public static final String MEET_URL = "meetUrl";
     public static final String KEY_PADDING = "padding";
     public static final String KEY_MARGIN = "margin";
     static final String KEY_LEFT = "left";

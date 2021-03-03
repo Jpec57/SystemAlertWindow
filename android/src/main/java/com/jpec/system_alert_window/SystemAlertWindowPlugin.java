@@ -3,10 +3,12 @@ package com.jpec.system_alert_window;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Build;
@@ -17,12 +19,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.jpec.system_alert_window.services.ConfirmCloseDialog;
 import com.jpec.system_alert_window.services.WindowServiceNew;
 import com.jpec.system_alert_window.utils.Commons;
 import com.jpec.system_alert_window.utils.Constants;
 import com.jpec.system_alert_window.utils.NotificationHelper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,6 +46,7 @@ import static com.jpec.system_alert_window.services.WindowServiceNew.INTENT_EXTR
 import static com.jpec.system_alert_window.services.WindowServiceNew.INTENT_EXTRA_IS_UPDATE_WINDOW;
 import static com.jpec.system_alert_window.utils.Constants.CHANNEL;
 import static com.jpec.system_alert_window.utils.Constants.INTENT_EXTRA_PARAMS_MAP;
+import static com.jpec.system_alert_window.utils.Constants.MEET_URL;
 
 public class SystemAlertWindowPlugin extends Activity implements MethodCallHandler {
 
@@ -55,7 +60,10 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
 
     static MethodChannel methodChannel;
     static MethodChannel backgroundChannel;
+    public String meetUrl;
     public static int ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 1237;
+    public static int PACKAGE_NAME_TYPE = 0;
+    public static int URL_TYPE = 1;
     private static NotificationManager notificationManager;
     private static final String TAG = "SystemAlertWindowPlugin";
 
@@ -76,6 +84,22 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
     @Override
     public void onMethodCall(MethodCall call, @NonNull Result result) {
         switch (call.method) {
+            case "confirmClose":
+                System.out.println("confirmClose");
+                if (checkPermission()) {
+                    final Intent i = new Intent(mContext, ConfirmCloseDialog.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    i.putExtra(INTENT_EXTRA_IS_UPDATE_WINDOW, false);
+
+                    mContext.startService(i);
+
+                    result.success(true);
+                } else {
+                    Toast.makeText(mContext, "Please give draw over other apps permission", Toast.LENGTH_LONG).show();
+                    result.success(false);
+                }
+                break;
             case "getPlatformVersion":
                 result.success("Android " + Build.VERSION.RELEASE);
                 break;
@@ -99,20 +123,26 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                     List arguments = (List) call.arguments;
                     String title = (String) arguments.get(0);
                     String body = (String) arguments.get(1);
+                    // Saving in sharedPrefs to use later.
                     HashMap<String, Object> params = (HashMap<String, Object>) arguments.get(2);
+                    SharedPreferences preferencesShow = mContext
+                            .getSharedPreferences(Constants.SHARED_PREF_SYSTEM_ALERT_WINDOW, 0);
+                    meetUrl = (java.lang.String)params.get(MEET_URL);
+                    preferencesShow.edit().putString(MEET_URL, meetUrl).apply();
+                    //
+                    System.out.println("JPEC OPENING WINDOW...");
                     if (Commons.isForceAndroidBubble(mContext) || Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        Log.d(TAG, "Going to show Bubble");
+                        System.out.println("DIALOG Going to show Bubble");
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             showBubble(title, body, params);
                         }
                     } else {
-                        Log.d(TAG, "Going to show System Alert Window");
+                        System.out.println("DIALOG System Alert Window");
                         final Intent i = new Intent(mContext, WindowServiceNew.class);
                         i.putExtra(INTENT_EXTRA_PARAMS_MAP, params);
                         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                         i.putExtra(INTENT_EXTRA_IS_UPDATE_WINDOW, false);
-                        //WindowService.enqueueWork(mContext, i);
                         mContext.startService(i);
                     }
                     result.success(true);
@@ -128,6 +158,12 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                     String updateTitle = (String) updateArguments.get(0);
                     String updateBody = (String) updateArguments.get(1);
                     HashMap<String, Object> updateParams = (HashMap<String, Object>) updateArguments.get(2);
+                    // Saving in sharedPrefs to use later.
+                    SharedPreferences preferencesUpdate = mContext
+                            .getSharedPreferences(Constants.SHARED_PREF_SYSTEM_ALERT_WINDOW, 0);
+                    meetUrl = (java.lang.String)updateParams.get(MEET_URL);
+                    preferencesUpdate.edit().putString(MEET_URL, meetUrl).apply();
+                    //
                     if (Commons.isForceAndroidBubble(mContext) || Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
                         Log.d(TAG, "Going to update Bubble");
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -140,7 +176,6 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                         i.putExtra(INTENT_EXTRA_IS_UPDATE_WINDOW, true);
-                        //WindowService.enqueueWork(mContext, i);
                         mContext.startService(i);
                     }
                     result.success(true);
@@ -156,7 +191,6 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                     } else {
                         final Intent i = new Intent(mContext, WindowServiceNew.class);
                         i.putExtra(INTENT_EXTRA_IS_CLOSE_WINDOW, true);
-                        //WindowService.dequeueWork(mContext, i);
                         mContext.startService(i);
                     }
                     result.success(true);
@@ -168,14 +202,41 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
             case "openLbc":
                 System.out.println("OPENING LBC");
                 final Intent intent = mContext.getPackageManager().getLaunchIntentForPackage("com.lbc.lbc_app");
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        | Intent.FLAG_ACTIVITY_NEW_TASK);
                 mContext.startActivity(intent);
                 break;
             case "openMeet":
                 System.out.println("OPENING MEET");
-                final Intent intentMeet = mContext.getPackageManager().getLaunchIntentForPackage("com.lbc.lbc_app");
-                intentMeet.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                SharedPreferences preferencesMeet = mContext
+                        .getSharedPreferences(Constants.SHARED_PREF_SYSTEM_ALERT_WINDOW, 0);
+                String url = preferencesMeet.getString(MEET_URL, "https://meet.google.com/");
+                System.out.println("URL USED: " + url);
+                final Intent intentMeet = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                intentMeet.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        | Intent.FLAG_ACTIVITY_NEW_TASK);
                 mContext.startActivity(intentMeet);
+                break;
+            case "launchIntent":
+                System.out.println("LAUNCHING CUSTOM EVENT");
+                assert (call.arguments != null);
+                List updateArguments = (List) call.arguments;
+                int type = (int) updateArguments.get(0);
+                String identifier = (String) updateArguments.get(1);
+                Intent unknownIntent = null;
+                if (type == PACKAGE_NAME_TYPE) {
+                    unknownIntent = mContext.getPackageManager().getLaunchIntentForPackage(identifier);
+                } else if (type == URL_TYPE) {
+                    unknownIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(identifier));
+                } else {
+                    System.out.println("UNKNOWN CUSTOM EVENT");
+                    result.success(false);
+                }
+                if (unknownIntent != null) {
+                    unknownIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    unknownIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    mContext.startActivity(unknownIntent);
+                }
                 break;
             case "registerCallBackHandler":
                 try {
@@ -183,7 +244,8 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                     if (callBackArguments != null) {
                         long callbackHandle = Long.parseLong(String.valueOf(callBackArguments.get(0)));
                         long onClickHandle = Long.parseLong(String.valueOf(callBackArguments.get(1)));
-                        SharedPreferences preferences = mContext.getSharedPreferences(Constants.SHARED_PREF_SYSTEM_ALERT_WINDOW, 0);
+                        SharedPreferences preferences = mContext
+                                .getSharedPreferences(Constants.SHARED_PREF_SYSTEM_ALERT_WINDOW, 0);
                         preferences.edit().putLong(Constants.CALLBACK_HANDLE_KEY, callbackHandle)
                                 .putLong(Constants.CODE_CALLBACK_HANDLE_KEY, onClickHandle).apply();
                         startCallBackHandler(mContext);
@@ -275,7 +337,7 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                 }
                 try {
                     Log.v(TAG, "Invoking on method channel");
-                    int[] retries = {2};
+                    int[] retries = { 2 };
                     invokeCallBackToFlutter(backgroundChannel, "callBack", argumentsList, retries);
                     // backgroundChannel.invokeMethod("callBack", argumentsList);
                 } catch (Exception ex) {
@@ -288,7 +350,7 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
     }
 
     private static void invokeCallBackToFlutter(final MethodChannel channel, final String method,
-                                                final List<Object> arguments, final int[] retries) {
+            final List<Object> arguments, final int[] retries) {
         channel.invokeMethod(method, arguments, new MethodChannel.Result() {
             @Override
             public void success(Object o) {
@@ -373,6 +435,13 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void showBubble(String title, String body, HashMap<String, Object> params) {
+        Icon icon = Icon.createWithResource(mContext, R.drawable.ic_notification);
+        NotificationHelper notificationHelper = NotificationHelper.getInstance(mContext);
+        notificationHelper.showNotification(icon, title, body, params);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void showConfirmCloseBubble(String title, String body, HashMap<String, Object> params) {
         Icon icon = Icon.createWithResource(mContext, R.drawable.ic_notification);
         NotificationHelper notificationHelper = NotificationHelper.getInstance(mContext);
         notificationHelper.showNotification(icon, title, body, params);

@@ -43,6 +43,7 @@ import static com.jpec.system_alert_window.utils.Constants.KEY_HEADER;
 import static com.jpec.system_alert_window.utils.Constants.KEY_HEIGHT;
 import static com.jpec.system_alert_window.utils.Constants.KEY_MARGIN;
 import static com.jpec.system_alert_window.utils.Constants.KEY_WIDTH;
+import static com.jpec.system_alert_window.utils.Constants.MEET_URL;
 
 public class WindowServiceNew extends Service implements View.OnTouchListener {
 
@@ -58,6 +59,7 @@ public class WindowServiceNew extends Service implements View.OnTouchListener {
     private int windowWidth;
     private int windowHeight;
     private Margin windowMargin;
+    public String meetUrl;
 
     private LinearLayout windowView;
     private LinearLayout headerView;
@@ -74,24 +76,23 @@ public class WindowServiceNew extends Service implements View.OnTouchListener {
 
     @Override
     public void onCreate() {
+        System.out.println("JPEC onCreate WINDOW");
+
         createNotificationChannel();
         Intent notificationIntent = new Intent(this, SystemAlertWindowPlugin.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Overlay window service is running")
-                .setSmallIcon(R.drawable.ic_desktop_windows_black_24dp)
-                .setContentIntent(pendingIntent)
-                .build();
+                .setSmallIcon(R.drawable.ic_desktop_windows_black_24dp).setContentIntent(pendingIntent).build();
         startForeground(NOTIFICATION_ID, notification);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
         if (null != intent && intent.getExtras() != null) {
             @SuppressWarnings("unchecked")
-            HashMap<String, Object> paramsMap = (HashMap<String, Object>) intent.getSerializableExtra(INTENT_EXTRA_PARAMS_MAP);
+            HashMap<String, Object> paramsMap = (HashMap<String, Object>) intent
+                    .getSerializableExtra(INTENT_EXTRA_PARAMS_MAP);
             mContext = this;
             boolean isCloseWindow = intent.getBooleanExtra(INTENT_EXTRA_IS_CLOSE_WINDOW, false);
             if (!isCloseWindow) {
@@ -111,11 +112,8 @@ public class WindowServiceNew extends Service implements View.OnTouchListener {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel serviceChannel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Foreground Service Channel",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
+            NotificationChannel serviceChannel = new NotificationChannel(CHANNEL_ID, "Foreground Service Channel",
+                    NotificationManager.IMPORTANCE_DEFAULT);
             NotificationManager manager = getSystemService(NotificationManager.class);
             assert manager != null;
             manager.createNotificationChannel(serviceChannel);
@@ -146,15 +144,21 @@ public class WindowServiceNew extends Service implements View.OnTouchListener {
     private WindowManager.LayoutParams getLayoutParams() {
         final WindowManager.LayoutParams params;
         params = new WindowManager.LayoutParams();
-        params.width = (windowWidth == 0) ? android.view.WindowManager.LayoutParams.MATCH_PARENT : Commons.getPixelsFromDp(mContext, windowWidth);
-        params.height = (windowHeight == 0) ? android.view.WindowManager.LayoutParams.WRAP_CONTENT : Commons.getPixelsFromDp(mContext, windowHeight);
+        params.width = (windowWidth == 0) ? android.view.WindowManager.LayoutParams.MATCH_PARENT
+                : Commons.getPixelsFromDp(mContext, windowWidth);
+        params.height = (windowHeight == 0) ? android.view.WindowManager.LayoutParams.WRAP_CONTENT
+                : Commons.getPixelsFromDp(mContext, windowHeight);
         params.format = PixelFormat.TRANSLUCENT;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             params.type = android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-            params.flags = android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+            params.flags = android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                    | android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         } else {
-            params.type = android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ALERT | android.view.WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
-            params.flags = android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+            params.type = android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+                    | android.view.WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+            params.flags = android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         }
         params.gravity = Commons.getGravity(windowGravity, Gravity.TOP);
         int marginTop = windowMargin.getTop();
@@ -162,14 +166,14 @@ public class WindowServiceNew extends Service implements View.OnTouchListener {
         int marginLeft = windowMargin.getLeft();
         int marginRight = windowMargin.getRight();
         params.x = Math.max(marginLeft, marginRight);
-        params.y = (params.gravity == Gravity.TOP) ? marginTop :
-                (params.gravity == Gravity.BOTTOM) ? marginBottom : Math.max(marginTop, marginBottom);
+        params.y = (params.gravity == Gravity.TOP) ? marginTop
+                : (params.gravity == Gravity.BOTTOM) ? marginBottom : Math.max(marginTop, marginBottom);
         return params;
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private void setWindowView(WindowManager.LayoutParams params, boolean isCreate) {
-        boolean isEnableDraggable = true;//params.width == WindowManager.LayoutParams.MATCH_PARENT;
+        boolean isEnableDraggable = true;// params.width == WindowManager.LayoutParams.MATCH_PARENT;
         if (isCreate) {
             windowView = new LinearLayout(mContext);
         }
@@ -190,6 +194,7 @@ public class WindowServiceNew extends Service implements View.OnTouchListener {
         closeWindow(false);
         setWindowManager();
         setWindowLayoutFromMap(paramsMap);
+        meetUrl = (String) paramsMap.get(MEET_URL);
         WindowManager.LayoutParams params = getLayoutParams();
         setWindowView(params, true);
         wm.addView(windowView, params);
@@ -197,9 +202,12 @@ public class WindowServiceNew extends Service implements View.OnTouchListener {
 
     private void updateWindow(HashMap<String, Object> paramsMap) {
         setWindowLayoutFromMap(paramsMap);
+        meetUrl = (String) paramsMap.get(MEET_URL);
         WindowManager.LayoutParams params = (WindowManager.LayoutParams) windowView.getLayoutParams();
-        params.width = (windowWidth == 0) ? android.view.WindowManager.LayoutParams.MATCH_PARENT : Commons.getPixelsFromDp(mContext, windowWidth);
-        params.height = (windowHeight == 0) ? android.view.WindowManager.LayoutParams.WRAP_CONTENT : Commons.getPixelsFromDp(mContext, windowHeight);
+        params.width = (windowWidth == 0) ? android.view.WindowManager.LayoutParams.MATCH_PARENT
+                : Commons.getPixelsFromDp(mContext, windowWidth);
+        params.height = (windowHeight == 0) ? android.view.WindowManager.LayoutParams.WRAP_CONTENT
+                : Commons.getPixelsFromDp(mContext, windowHeight);
         setWindowView(params, false);
         wm.updateViewLayout(windowView, params);
     }
@@ -217,7 +225,7 @@ public class WindowServiceNew extends Service implements View.OnTouchListener {
         } catch (IllegalArgumentException e) {
             Log.e(TAG, "view not found");
         }
-        if(isEverythingDone){
+        if (isEverythingDone) {
             stopSelf();
         }
     }
@@ -258,9 +266,10 @@ public class WindowServiceNew extends Service implements View.OnTouchListener {
 
     @Override
     public void onDestroy() {
-        //Toast.makeText(this, "service done", Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, "service done", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "Destroying the overlay window service");
-        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) getApplicationContext()
+                .getSystemService(Context.NOTIFICATION_SERVICE);
         assert notificationManager != null;
         notificationManager.cancel(NOTIFICATION_ID);
     }
