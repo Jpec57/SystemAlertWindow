@@ -127,8 +127,11 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                     HashMap<String, Object> params = (HashMap<String, Object>) arguments.get(2);
                     SharedPreferences preferencesShow = mContext
                             .getSharedPreferences(Constants.SHARED_PREF_SYSTEM_ALERT_WINDOW, 0);
-                    meetUrl = (java.lang.String)params.get(MEET_URL);
-                    preferencesShow.edit().putString(MEET_URL, meetUrl).apply();
+
+                    meetUrl = (java.lang.String) params.get(MEET_URL);
+                    if (meetUrl) {
+                        preferencesShow.edit().putString(MEET_URL, meetUrl).apply();
+                    }
                     //
                     System.out.println("JPEC OPENING WINDOW...");
                     if (Commons.isForceAndroidBubble(mContext) || Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -161,8 +164,10 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                     // Saving in sharedPrefs to use later.
                     SharedPreferences preferencesUpdate = mContext
                             .getSharedPreferences(Constants.SHARED_PREF_SYSTEM_ALERT_WINDOW, 0);
-                    meetUrl = (java.lang.String)updateParams.get(MEET_URL);
-                    preferencesUpdate.edit().putString(MEET_URL, meetUrl).apply();
+                    meetUrl = (java.lang.String) updateParams.get(MEET_URL);
+                    if (meetUrl) {
+                        preferencesUpdate.edit().putString(MEET_URL, meetUrl).apply();
+                    }
                     //
                     if (Commons.isForceAndroidBubble(mContext) || Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
                         Log.d(TAG, "Going to update Bubble");
