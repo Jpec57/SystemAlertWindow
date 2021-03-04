@@ -129,7 +129,7 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                             .getSharedPreferences(Constants.SHARED_PREF_SYSTEM_ALERT_WINDOW, 0);
 
                     meetUrl = (java.lang.String) params.get(MEET_URL);
-                    if (meetUrl) {
+                    if (meetUrl != null) {
                         preferencesShow.edit().putString(MEET_URL, meetUrl).apply();
                     }
                     //
@@ -165,7 +165,7 @@ public class SystemAlertWindowPlugin extends Activity implements MethodCallHandl
                     SharedPreferences preferencesUpdate = mContext
                             .getSharedPreferences(Constants.SHARED_PREF_SYSTEM_ALERT_WINDOW, 0);
                     meetUrl = (java.lang.String) updateParams.get(MEET_URL);
-                    if (meetUrl) {
+                    if (meetUrl != null) {
                         preferencesUpdate.edit().putString(MEET_URL, meetUrl).apply();
                     }
                     //
